@@ -18,5 +18,6 @@ client.on('message', async msg => {
    * msg.channel         => Canal por el que se ha enviado el mensaje.
    * Para más cosas, mirar la documentación de Discord.js.
    */
+  if(msg.author.id == client.user.id) return; // Para que no se lea a él mismo.
   msg.channel.send("Esto es una prueba.");
 });
