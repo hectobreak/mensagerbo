@@ -1,4 +1,4 @@
-var bd = require("./bd.js");
+ï»¿var bd = require("./bd.js");
 
 var commandKeys = new Array;
 var commandFunc = new Object;
@@ -22,17 +22,17 @@ addCommand("s", "Establece el juego con el que te quieres comunicar.", msg => {
   serverSet[msg.author.id] = msg.content.slice(3);
 });
 
-addCommand("g", "Envía un mensaje.", msg => {
+addCommand("g", "EnvÃ­a un mensaje.", msg => {
   var msg1 = msg.content.slice(3);
   var from = "", to = new Array, send = "", tempUsr = "";
   var status = 0;
   for(var i of msg1){
     switch(status){
-      case 0: //Esperando el nombre del que envía.
+      case 0: //Esperando el nombre del que envÃ­a.
         if(i == "-") status = 0.5;
         else if(i != " ") from += i;
         break;
-      case 0.5: //Comprobando si es una flecha o solo un guión.
+      case 0.5: //Comprobando si es una flecha o solo un guiÃ³n.
         if(i == ">") status = 1;
         else {
           from += "-";
@@ -41,6 +41,7 @@ addCommand("g", "Envía un mensaje.", msg => {
         break;
       case 1: //Esperando a la llave.
         if(i == "[") status = 2;
+        else if(i != " ") { tempUsr += i; status = 5; }
         break;
       case 2: //Sacando a quien enviar.
         if(i == "," && tempUsr != "") { to.push(tempUsr); tempUsr = ""; }
@@ -52,6 +53,10 @@ addCommand("g", "Envía un mensaje.", msg => {
       case 3: //Esperando mensaje
         if(i == ":") status = 4;
         break;
+      case 5:
+        if(i == ":") { to.push(tempUsr); status = 4; }
+        else if(i != " ") tempUsr += i;
+        break;
       default: //Coger mensaje
         send += i;
     }
@@ -61,35 +66,44 @@ addCommand("g", "Envía un mensaje.", msg => {
   if(status != 4){
     msg.channel.send("USO:\n```\ng/ De -> [A1, A2, An]: mensaje\n```\n");
   } else if(serverSet[msg.author.id] == undefined){
-    msg.channel.send("No has especificado en qué juego estás. Para hacerlo, ejecuta el comando:\n```\ns/ **NombreDelJuego**\n```");
+    msg.channel.send("No has especificado en quÃ© juego estÃ¡s. Para hacerlo, ejecuta el comando:\n```\ns/ **NombreDelJuego**\n```");
   } else {
     var theGame = bd.partidas[serverSet[msg.author.id]];
     if(msg.author.id != theGame.master && theGame.playerMap[from.toLowerCase()] != msg.author.id){
-      msg.channel.send("No tienes ningún personaje en la partida **" + serverSet[msg.author.id] + "** llamado **" + from + "**.");
-    } else {
-      var TSObj = new Object;
-      for(var i of to){
-        if(theGame.playerMap[i.toLowerCase()] == undefined){
-          msg.channel.send("No existe el personaje llamado **"+i+"** en la partida **" + serverSet[msg.author.id] + "**.");
-          return;
-        } else TSObj[theGame.playerMap[i.toLowerCase()]] = true;
-      }
-      for(var i of Object.keys(TSObj)){
-        lastMsgSt[msg.author.id] = {f: from, t: to, s: serverSet[msg.author.id]};
-        if(botUsers[i] == undefined){
-          if(msg.guild.members.get(i) == undefined) msg.channel.send("No he podido enviar el mensaje a <@" + i + ">.");
-          else {
-            msg.guild.members.get(i).send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
-            botUsers[i] = msg.guild.members.get(i);
-          }
-        } else botUsers[i].send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
-      }         
-    }
+      msg.channel.send("No tienes ningÃºn personaje en la partida **" + serverSet[msg.author.id] + "** llamado **" + from + "**.");
+    } else sendMessage(msg, from, to, serverSet[msg.author.id], send);
   }
 });
 
+addCommand("r", "EnvÃ­a un mensaje al Ãºltimo destinatario al que has enviado.", msg => {
+  msg.delete();
+  if(lastMsgSt[msg.author.id] == undefined) msg.reply("No has enviado ningÃºn mensaje desde que he sido iniciado.");
+  else sendMessage(msg, lastMsgSt[msg.author.id].f, lastMsgSt[msg.author.id].t, lastMsgSt[msg.author.id].s, msg.content.slice(3));
+});
 
+function sendMessage(msg, from, to, myServer, send){
+  var theGame = bd.partidas[myServer];
+  var TSObj = new Object;
+  TSObj[theGame.master] = true;
 
+  if(to.indexOf(from) < 0) to.push(from);
+  for(var i of to){
+    if(theGame.playerMap[i.toLowerCase()] == undefined){
+      msg.channel.send("No existe el personaje llamado **"+i+"** en la partida **" + myServer + "**.");
+      return;
+    } else TSObj[theGame.playerMap[i.toLowerCase()]] = true;
+  }
+  for(var i of Object.keys(TSObj)){
+    lastMsgSt[msg.author.id] = {f: from, t: to, s: myServer};
+    if(botUsers[i] == undefined){
+      if(msg.guild.members.get(i) == undefined) msg.channel.send("No he podido enviar el mensaje a <@" + i + ">.");
+      else {
+        msg.guild.members.get(i).send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
+        botUsers[i] = msg.guild.members.get(i);
+      }
+    } else botUsers[i].send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
+  }         
+}
 
 module.exports = new Object;
 module.exports.keys = commandKeys;
