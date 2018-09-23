@@ -1,3 +1,5 @@
+var bd = require("./bd.js");
+
 var commandKeys = new Array;
 var commandFunc = new Object;
 var commandDesc = new Object;
