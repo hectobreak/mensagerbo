@@ -5,7 +5,8 @@ mensagerbo_credentials.js es un fichero de la siguiente forma:
 * client.login(TOKEN)
 * module.exports = client;
 */
-var client = require("../mensagerbo_credentials.js");
+client = require("../mensagerbo_credentials.js");
+
 var clases = require("./clases.js");
 var bd     = require("./bd.js");
 

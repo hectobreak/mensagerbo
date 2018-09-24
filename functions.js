@@ -96,9 +96,9 @@ function sendMessage(msg, from, to, myServer, send){
   for(var i of Object.keys(TSObj)){
     lastMsgSt[msg.author.id] = {f: from, t: to, s: myServer};
     if(botUsers[i] == undefined){
-      if(msg.guild.members.get(i) == undefined) msg.channel.send("No he podido enviar el mensaje a <@" + i + ">.");
+      if(client.users.get(i) == undefined) msg.channel.send("No he podido enviar el mensaje a <@" + i + ">.");
       else {
-        msg.guild.members.get(i).send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
+        client.users.get(i).send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
         botUsers[i] = msg.guild.members.get(i);
       }
     } else botUsers[i].send(from + " -> [" + to + "]: \n```\n" + send + "\n```\n");
